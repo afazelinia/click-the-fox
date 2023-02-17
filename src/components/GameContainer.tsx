@@ -17,9 +17,8 @@ const GameContainer = ({}) => {
         <div>
             {gameStarted ? (
                 <>
-                    <div>
-                        <p>Score: {''}</p>
-                        <p>Time Left: {''}</p>
+                    <div className="relative">
+                        <p className="score">Score: {''}, Time Left: {''}</p>
                     </div>
                     <Board
                         cards={cards}

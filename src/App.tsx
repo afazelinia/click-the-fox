@@ -2,7 +2,7 @@ import GameContainer from './components/GameContainer';
 
 const App = () => {
   return (
-      <div>
+      <div className="app">
         <header>
           <h1>Click the Fox!</h1>
         </header>

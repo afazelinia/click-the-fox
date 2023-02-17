@@ -79,7 +79,7 @@ button:active {
     display: flex;
     flex-wrap: wrap;
     flex-basis: content;
-    max-width: 1200px;
+    max-width: 620px;
     gap: 10px;
 }
 
@@ -94,17 +94,21 @@ button:active {
 
 img {
     border-radius: 10px;
-    width: 200px;
     transition: width 0.2s;
     transition-timing-function: ease;
+    object-position: center;
+    height: 200px;
+    width: 200px;
 }
 
 img:hover {
-    width: 180px;
+    height: 198px;
+    width: 198px;
 }
 
 img:active {
-    width: 150px;
+    height: 195px;
+    width: 195px;
 }
 
 .score {

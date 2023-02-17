@@ -11,8 +11,8 @@ type BoardProps = {
 const Board = ({ cards, onCardClicked }: BoardProps) => (
     <div className="cards-container">
         {cards.map((card) => (
-            <div onClick={() => onCardClicked(card.index)} key={`${card.index}`}>
-                <img src={card.img}/>
+            <div className="card" onClick={() => onCardClicked(card.index)} key={`${card.index}`}>
+                <img src={card.img} draggable="false" />
             </div>
         ))}
     </div>
