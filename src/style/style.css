@@ -103,6 +103,17 @@ button:active {
     gap: 10px;
 }
 
+.paused-container {
+    display: flex;
+    width: 620px;
+    height: 620px;
+    background-color: gray;
+    color: white;
+    font-size: 2rem;
+    justify-content: center;
+    align-items: center;
+}
+
 .card {
     display: flex;
     justify-content: center;

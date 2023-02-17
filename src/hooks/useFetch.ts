@@ -5,7 +5,13 @@ type useFetchType = {
     loading: boolean;
 };
 
-const useFetch = (url: string, dataSelector: string, reFetch: number): useFetchType => {
+type fetchAddressType = {
+    url: string;
+    selector: string;
+    fetchCount: number,
+};
+
+const useFetch = (fetchAddress: fetchAddressType, reFetch: number): useFetchType => {
 
     const [data, setData] = useState<string[]>([]);
     const [loading, setLoading] = useState(false);
@@ -17,7 +23,7 @@ const useFetch = (url: string, dataSelector: string, reFetch: number): useFetchT
         const doFetch = async () => {
             try {
                 setLoading(true);
-                const urls = new Array(12).fill(url);
+                const urls = new Array(fetchAddress.fetchCount).fill(fetchAddress.url);
                 const picsPromises = await Promise.allSettled(urls.map(async url => {
                     const resp = await fetch(url, { signal } );
                     return resp.json();
@@ -25,7 +31,7 @@ const useFetch = (url: string, dataSelector: string, reFetch: number): useFetchT
                 const results = [];
                 for (const pic of picsPromises) {
                     if (pic.status === 'fulfilled') {
-                        results.push(pic.value[dataSelector]);
+                        results.push(pic.value[fetchAddress.selector]);
                     }
                 }
                 if (!signal.aborted) {
@@ -44,7 +50,7 @@ const useFetch = (url: string, dataSelector: string, reFetch: number): useFetchT
         return () => {
             abortController.abort()
         }
-    }, [url, dataSelector, reFetch])
+    }, [fetchAddress.url, fetchAddress.selector, reFetch])
 
     return { data, loading };
 

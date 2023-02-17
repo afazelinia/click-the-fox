@@ -17,28 +17,57 @@ type answerType = {
     cards: CardType[],
 };
 
+type collectionType = {
+    dogs: string[],
+    cats: string[],
+    foxes: string[],
+};
+
+type reFetchType = {
+    dogs: number,
+    cats: number,
+    foxes: number,
+};
+
+const catsPerQuestion = 1;
+const dogsPerQuestion = 7;
+const preFetchQuestionCount = 3;
+
+const foxesAddress = { url: "https://randomfox.ca/floof", selector: "image", fetchCount: preFetchQuestionCount };
+const dogsAddress = { url: "https://dog.ceo/api/breeds/image/random", selector: "message", fetchCount: dogsPerQuestion * preFetchQuestionCount };
+const catsAddress = { url: "https://aws.random.cat/meow", selector: "file", fetchCount: catsPerQuestion * preFetchQuestionCount };
+
+const preLoadImages = async (urls: string[]) => {
+    const loadImage = (url: string) : any => new Promise((resolve, reject) => {
+        const img = new Image();
+        img.addEventListener('load', () => resolve(img));
+        img.addEventListener('error', (err) => reject(err));
+        img.src = url;
+    });
+    const urlsPromise = await Promise.allSettled(urls.map(url => loadImage(url)));
+    const result: string[] = [];
+    for (const urlPromise of urlsPromise) {
+        if (urlPromise.status === 'fulfilled') {
+            result.push(urlPromise.value.src);
+        }
+    }
+    return result;
+};
+
 const useGame = (): useGameType => {
-    // States
+
     const [score, setScore] = useState(0);
     const [timeLeft, setTimeLeft] = useState(30);
-    const [collection, setCollection] = useState<string[]>([]);
     const [playing, setPlaying] = useState(false);
-    const [reFetch, setReFetch] = useState(0);
+    const [reFetch, setReFetch] = useState<reFetchType>({ dogs: 0, cats: 0, foxes: 0 });
     const [currentQuestion, setCurrentQuestion] = useState<answerType>({ answer: -1, cards: [] });
+    const [collection, setCollection] = useState<collectionType>({ dogs: [], cats: [], foxes: []}); // loaded Images
 
     const intervalId = useRef<number>();
 
-    const { data: dogs, loading: loadingDogs } = useFetch("https://dog.ceo/api/breeds/image/random", "message", reFetch);
-    const { data: cats, loading: loadingCats } = useFetch("https://aws.random.cat/meow", "file", reFetch);
-    const { data: foxes, loading: loadingFoxes } = useFetch("https://randomfox.ca/floof", "image", reFetch);
-
-    useEffect(() => {
-        if (!loadingDogs && !loadingCats) {
-            const orderedDogsCats = dogs.concat(cats);
-            const shuffledPictures = orderedDogsCats.sort((a, b) => 0.5 - Math.random());
-            setCollection(shuffledPictures);
-        }
-    }, [loadingCats, loadingDogs]);
+    const { data: dogs, loading: loadingDogs } = useFetch(dogsAddress, reFetch.dogs);
+    const { data: cats, loading: loadingCats } = useFetch(catsAddress, reFetch.cats);
+    const { data: foxes, loading: loadingFoxes } = useFetch(foxesAddress, reFetch.foxes);
 
     useEffect(() => {
         if (playing) {
@@ -56,46 +85,61 @@ const useGame = (): useGameType => {
 
     useEffect(() => {
         if (timeLeft <= 0) {
-            console.log('game ended');
             setPlaying(false);
         }
     }, [timeLeft]);
 
     useEffect(() => {
-        // prefetch foxes
-        if (foxes.length && !loadingFoxes) {
-            preFetchImages(foxes.slice(0, 6));
-        }
+        setImagesToCollection(foxes, loadingFoxes, 'foxes');
     }, [loadingFoxes]);
 
     useEffect(() => {
-        // prefetch others
-        if (collection.length) {
-            preFetchImages(collection.slice(0, 16));
-        }
-    }, [collection]);
+        setImagesToCollection(dogs, loadingDogs, 'dogs');
+    }, [loadingDogs]);
 
-    const preFetchImages = (images: string[]) => {
-        images.forEach(image => {
-           new Image().src = image;
-        });
+    useEffect(() => {
+        setImagesToCollection(cats, loadingCats, 'cats');
+    }, [loadingCats]);
+
+    const setImagesToCollection = (urls: string[], loading: boolean, identifier: string) => {
+        if (urls.length && !loading) {
+            async function preFetch() {
+                const loaded = await preLoadImages(urls);
+                setCollection(prevCollection => ({
+                    ...prevCollection,
+                    [identifier]: prevCollection[identifier as keyof collectionType].concat(urls)
+                }));
+            }
+            preFetch();
+        }
     };
 
     const generateQuestion = (): { answer: number, cards: CardType[] } => {
-        if (collection.length <= 16 || foxes.length <= 2) {
-            // fill queue
-            setReFetch(reFetch + 1);
+        // prefetch pictures
+        if (collection.dogs.length < dogsAddress.fetchCount) {
+            setReFetch(prevReFetch => ({...prevReFetch, dogs: prevReFetch.dogs + 1 }));
         }
-        if (currentQuestion.answer !== -1) {
-            // push collection
-            setCollection(collection.slice(8, collection.length));
-            foxes.shift();
+        if (collection.cats.length < catsAddress.fetchCount) {
+            setReFetch(prevReFetch => ({...prevReFetch, cats: prevReFetch.cats + 1 }));
         }
-        // random question
-        const answer = Math.floor(Math.random() * 9);
-        const pictures = collection.slice(0, 8);
-        pictures.splice(answer, 0, foxes[0]);
-        return { answer, cards: pictures.map((img, index) => {
+        if (collection.foxes.length < foxesAddress.fetchCount) {
+            setReFetch(prevReFetch => ({...prevReFetch, foxes: prevReFetch.foxes + 1 }));
+        }
+
+        // generate random question
+        const answer = Math.floor(Math.random() * (catsPerQuestion + dogsPerQuestion + 1));
+        const randomCollection = collection.dogs.slice(0, dogsPerQuestion).concat(collection.cats.slice(0, catsPerQuestion))
+            .sort((a, b) => 0.5 - Math.random());
+        randomCollection.splice(answer, 0, collection.foxes[0]);
+
+        // push for next question
+        setCollection({
+            dogs: collection.dogs.slice(dogsPerQuestion, dogs.length),
+            cats: collection.cats.slice(catsPerQuestion, cats.length),
+            foxes: collection.foxes.slice(1, foxes.length),
+        });
+
+        return { answer, cards: randomCollection.map((img, index) => {
             return { index, img };
             })
         };
@@ -117,11 +161,19 @@ const useGame = (): useGameType => {
         setPlaying(playing);
     };
 
+    const isLoading = (): boolean => {
+        return collection.dogs.length < dogsPerQuestion ||
+            collection.cats.length < catsPerQuestion ||
+            collection.foxes.length < 1;
+    };
+
     return [score,
             currentQuestion.cards,
-            provideAnswer, playing,
-            setGamePlaying, timeLeft,
-            loadingDogs || loadingFoxes || loadingCats ];
+            provideAnswer,
+            playing,
+            setGamePlaying,
+            timeLeft,
+            isLoading()];
 };
 
 export default useGame;

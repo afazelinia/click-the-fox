@@ -69,10 +69,10 @@ const GameContainer = ({}) => {
                     <div className="relative">
                         <p className="score">Score: {score}, Time Left: 00:{timeLeft < 10 ? "0" + timeLeft : timeLeft}</p>
                     </div>
-                    <Board
+                    {(isLoading) ? <div className="paused-container">Loading...</div> : <Board
                         cards={cards}
                         onCardClicked={provideAnswer}
-                    />
+                    />}
                 </>
             )}
             {!playing && timeLeft > 0 && (
