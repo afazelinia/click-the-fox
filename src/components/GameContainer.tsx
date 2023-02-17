@@ -1,14 +1,25 @@
+import { useState, useRef } from "react";
 import useGame from "../hooks/useGame";
 import Board from "./Board";
 
 const GameContainer = ({}) => {
     const [score, cards, provideAnswer, playing, setGamePlaying, timeLeft, isLoading] = useGame();
+    const [playerName, setPlayerName] = useState('');
+    const inputRef = useRef<HTMLInputElement>(null);
 
     const startGame = () => {
+        const name = playerName || inputRef.current?.value;
+        console.log('player name:', name);
         setGamePlaying(true);
     };
+
     const stopGame = () => {
         setGamePlaying(false);
+    };
+
+    const onSubmitForm = () => {
+        const name = inputRef.current?.value ?? '';
+        setPlayerName(name);
     };
 
     return (
@@ -24,7 +35,12 @@ const GameContainer = ({}) => {
                     />
                 </>
             ) : (
-                <button onClick={() => startGame()} disabled={isLoading}>{isLoading ? 'Loading...' : 'Play'}</button>
+                <div className="welcome-container">
+                    {playerName.trim() === '' ? <form onSubmit={onSubmitForm}>
+                        <label>Enter your name: <input type="text" name="playerName" ref={inputRef} /></label>
+                    </form> : <p className="greeting" onClick={() => setPlayerName('')}>Hello {playerName}</p>}
+                    <button onClick={() => startGame()} disabled={isLoading}>{isLoading ? 'Loading...' : 'Play'}</button>
+                </div>
             )}
         </div>
     );
