@@ -5,7 +5,7 @@ type useFetchType = {
     loading: boolean;
 };
 
-const useFetch = function(url: string, dataSelector: string, reFetch: number): useFetchType{
+const useFetch = (url: string, dataSelector: string, reFetch: number): useFetchType => {
 
     const [data, setData] = useState<string[]>([]);
     const [loading, setLoading] = useState(false);

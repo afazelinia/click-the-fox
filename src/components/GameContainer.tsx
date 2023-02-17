@@ -1,19 +1,23 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useCallback, useEffect } from "react";
 import useGame from "../hooks/useGame";
+import useLocalStorage from "../hooks/useLocalStorage";
 import Board from "./Board";
-import Scoreboard from "./Scoreboard";
+import Scoreboard, { scoreType } from "./Scoreboard";
 
-const mockRecords = [
-    {
-        playerName: 'Amir',
-        dateTime: new Date().toLocaleDateString('en-us', { year:"numeric", month:"short", day:"numeric" }),
-        score: '10',
+const findRank = (currentRecord: scoreType, records: scoreType[]): number => {
+    for (let i = 0; i< records.length; i++) {
+        if (Number(records[i]?.score) <= Number(currentRecord?.score)) {
+            return i - 1;
+        }
     }
-];
+    return records.length
+};
 
 const GameContainer = ({}) => {
     const [score, cards, provideAnswer, playing, setGamePlaying, timeLeft, isLoading] = useGame();
     const [playerName, setPlayerName] = useState('');
+    const [records, setRecords] = useLocalStorage("scoreboard_CtF", []);
+
     const inputRef = useRef<HTMLInputElement>(null);
 
     const startGame = () => {
@@ -22,6 +26,24 @@ const GameContainer = ({}) => {
         }
         setGamePlaying(true);
     };
+
+    useEffect(() => {
+        if (!playing && timeLeft <= 0) {
+            setRecords(() => {
+                const currentRecord = {
+                    playerName,
+                    dateTime: new Date().toLocaleDateString('en-us', {
+                        year:"numeric",
+                        month:"short",
+                        day:"numeric",
+                    }),
+                    score: String(score),
+                };
+                const rank = findRank(currentRecord, records) + 1;
+                return [...records.slice(0, rank), currentRecord, ...records.slice(rank)];
+            });
+        }
+    }, [playing]);
 
     const stopGame = () => {
         setGamePlaying(false);
@@ -32,13 +54,13 @@ const GameContainer = ({}) => {
         setPlayerName(name);
     };
 
-    const fillRecords = () => {
+    const fillRecords = useCallback(() => {
         let empty = [];
-        if (mockRecords.length < 10) {
-            empty = new Array(10 - mockRecords.length).fill({ playerName: '', dateTime: '', score: '' });
+        if (records.length < 10) {
+            empty = new Array(10 - records.length).fill({ playerName: '', dateTime: '', score: '' });
         }
-        return mockRecords.concat(empty);
-    };
+        return records.concat(empty);
+    }, [records]);
 
     return (
         <div>

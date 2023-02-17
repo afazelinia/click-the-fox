@@ -1,15 +1,14 @@
-
-export type ScoreType = {
-    playerName: string;
-    dateTime: string;
-    score: string;
+export type scoreType = {
+    playerName?: string;
+    dateTime?: string;
+    score?: string;
 };
 
-type ScoreboardProps = {
-    records: ScoreType[];
+type ScoreboardPropsType = {
+    records: scoreType[];
 };
 
-const Scoreboard = ({ records }: ScoreboardProps) => (
+const Scoreboard = ({ records }: ScoreboardPropsType) => (
         <div className="table-container">
             <div className="table-row heading">
                 {['Rank', 'Name', 'Date', 'Score'].map((title, index) =>
