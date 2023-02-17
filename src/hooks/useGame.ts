@@ -1,5 +1,6 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { CardType } from "../components/Board";
+import useFetch from "./useFetch";
 
 type useGameType = [
     number,
@@ -22,7 +23,18 @@ const useGame = function (): useGameType {
     // States
     const [score, setScore] = useState(0);
     const [cards, setCards] = useState(mockedGetCards());
+    const { data: dogs, loading: loadingDogs } = useFetch("https://dog.ceo/api/breeds/image/random", "message");
+    const { data: cats, loading: loadingCats } = useFetch("https://aws.random.cat/meow", "file");
+    const { data: foxes, loading: loadingFoxes } = useFetch("https://randomfox.ca/floof/", "image");
 
+
+    useEffect(() => {
+        if (!loadingFoxes && !loadingDogs && !loadingCats) {
+            console.log('dogs', dogs);
+            console.log('cats', cats);
+            console.log('foxes', foxes);
+        }
+    }, [loadingFoxes, loadingCats, loadingDogs]);
 
     const clickCard = function (id: number) {
     };
