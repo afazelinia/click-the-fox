@@ -2,7 +2,7 @@ import useGame from "../hooks/useGame";
 import Board from "./Board";
 
 const GameContainer = ({}) => {
-    const [score, cards, provideAnswer, playing, setGamePlaying, timeLeft] = useGame();
+    const [score, cards, provideAnswer, playing, setGamePlaying, timeLeft, isLoading] = useGame();
 
     const startGame = () => {
         setGamePlaying(true);
@@ -24,7 +24,7 @@ const GameContainer = ({}) => {
                     />
                 </>
             ) : (
-                <button onClick={() => startGame()}>Play</button>
+                <button onClick={() => startGame()} disabled={isLoading}>{isLoading ? 'Loading...' : 'Play'}</button>
             )}
         </div>
     );

@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { CardType } from "../components/Board";
 import useFetch from "./useFetch";
 
@@ -9,6 +9,7 @@ type useGameType = [
     boolean,
     (playing: boolean) => void,
     number,
+    boolean,
 ];
 
 type answerType = {
@@ -23,8 +24,10 @@ const useGame = (): useGameType => {
     const [collection, setCollection] = useState<string[]>([]);
     const [playing, setPlaying] = useState(false);
     const [reFetch, setReFetch] = useState(0);
-
     const [currentQuestion, setCurrentQuestion] = useState<answerType>({ answer: -1, cards: [] });
+
+    const intervalId = useRef<number>();
+
     const { data: dogs, loading: loadingDogs } = useFetch("https://dog.ceo/api/breeds/image/random", "message", reFetch);
     const { data: cats, loading: loadingCats } = useFetch("https://aws.random.cat/meow", "file", reFetch);
     const { data: foxes, loading: loadingFoxes } = useFetch("https://randomfox.ca/floof", "image", reFetch);
@@ -39,9 +42,15 @@ const useGame = (): useGameType => {
 
     useEffect(() => {
         if (playing) {
-            console.log('game started');
             setScore(0);
+            setTimeLeft(30);
             setCurrentQuestion(generateQuestion());
+            intervalId.current = window.setInterval(() => {
+                setTimeLeft(prevTimeLeft => prevTimeLeft - 1);
+            }, 1000);
+            return () => {
+                clearInterval(intervalId.current);
+            }
         }
     }, [playing]);
 
@@ -108,7 +117,11 @@ const useGame = (): useGameType => {
         setPlaying(playing);
     };
 
-    return [score, currentQuestion.cards, provideAnswer, playing, setGamePlaying, timeLeft ];
+    return [score,
+            currentQuestion.cards,
+            provideAnswer, playing,
+            setGamePlaying, timeLeft,
+            loadingDogs || loadingFoxes || loadingCats ];
 };
 
 export default useGame;
