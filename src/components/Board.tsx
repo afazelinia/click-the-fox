@@ -5,7 +5,7 @@ export type CardType = {
 
 type BoardProps = {
     cards: CardType[];
-    onCardClicked: (id: number) => void;
+    onCardClicked: (index: number) => void;
 };
 
 const Board = ({ cards, onCardClicked }: BoardProps) => (

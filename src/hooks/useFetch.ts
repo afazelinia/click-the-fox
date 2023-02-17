@@ -5,7 +5,7 @@ type useFetchType = {
     loading: boolean;
 };
 
-const useFetch = function(url: string, dataSelector: string): useFetchType{
+const useFetch = function(url: string, dataSelector: string, reFetch: number): useFetchType{
 
     const [data, setData] = useState<string[]>([]);
     const [loading, setLoading] = useState(false);
@@ -44,7 +44,7 @@ const useFetch = function(url: string, dataSelector: string): useFetchType{
         return () => {
             abortController.abort()
         }
-    }, [url, dataSelector])
+    }, [url, dataSelector, reFetch])
 
     return { data, loading };
 
