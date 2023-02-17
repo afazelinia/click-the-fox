@@ -6,40 +6,77 @@ type useGameType = [
     number,
     CardType[],
     (id: number) => void,
+    boolean,
+    (playing: boolean) => void,
 ];
 
-const mockedGetCards = () => [
-    { index: 1, img: "https://randomfox.ca/images/1.jpg" },
-    { index: 2, img: "https://randomfox.ca/images/2.jpg" },
-    { index: 3, img: "https://randomfox.ca/images/3.jpg" },
-    { index: 4, img: "https://randomfox.ca/images/4.jpg" },
-    { index: 5, img: "https://randomfox.ca/images/5.jpg" },
-    { index: 6, img: "https://randomfox.ca/images/6.jpg" },
-    { index: 7, img: "https://randomfox.ca/images/7.jpg" },
-    { index: 8, img: "https://randomfox.ca/images/8.jpg" },
-    { index: 9, img: "https://randomfox.ca/images/9.jpg" },
-];
-const useGame = function (): useGameType {
+type answerType = {
+    answer: number,
+    cards: CardType[],
+};
+
+const useGame = (): useGameType => {
     // States
     const [score, setScore] = useState(0);
-    const [cards, setCards] = useState(mockedGetCards());
+    const [collection, setCollection] = useState<string[]>([]);
+    const [playing, setPlaying] = useState(false);
+
+    const [currentQuestion, setCurrentQuestion] = useState<answerType>({ answer: -1, cards: [] });
     const { data: dogs, loading: loadingDogs } = useFetch("https://dog.ceo/api/breeds/image/random", "message");
     const { data: cats, loading: loadingCats } = useFetch("https://aws.random.cat/meow", "file");
     const { data: foxes, loading: loadingFoxes } = useFetch("https://randomfox.ca/floof/", "image");
 
+    useEffect(() => {
+        if (!loadingDogs && !loadingCats) {
+            const orderedDogsCats = dogs.concat(cats);
+            const shuffledPictures = orderedDogsCats.sort((a, b) => 0.5 - Math.random());
+            setCollection(shuffledPictures);
+        }
+    }, [loadingCats, loadingDogs]);
 
     useEffect(() => {
-        if (!loadingFoxes && !loadingDogs && !loadingCats) {
-            console.log('dogs', dogs);
-            console.log('cats', cats);
-            console.log('foxes', foxes);
+        if (playing) {
+            // start playing
+            setScore(0);
+            setCurrentQuestion(generateQuestion());
         }
-    }, [loadingFoxes, loadingCats, loadingDogs]);
+    }, [playing]);
 
-    const clickCard = function (id: number) {
+    const generateQuestion = (): { answer: number, cards: CardType[] } => {
+        if (collection.length <= 24 || foxes.length <= 3) {
+            // todo refetch;
+        }
+        if (currentQuestion.answer !== -1) {
+            // push collection
+            setCollection(collection.slice(8, collection.length));
+            foxes.shift();
+        }
+        const answer = Math.floor(Math.random() * 9);
+        const pictures = collection.slice(0, 8);
+        pictures.splice(answer, 0, foxes[0]);
+        return { answer, cards: pictures.map((img, index) => {
+            return { index, img };
+            })
+        };
     };
 
-    return [score, cards, clickCard];
+    const provideAnswer = (index: number) => {
+        if (!playing) {
+            return;
+        }
+        if (index === currentQuestion.answer) {
+            setScore(score + 1);
+            setCurrentQuestion(generateQuestion());
+        } else {
+            setScore(score - 1);
+        }
+    };
+
+    const setGamePlaying = (playing: boolean) => {
+        setPlaying(playing);
+    };
+
+    return [score, currentQuestion.cards, provideAnswer, playing, setGamePlaying ];
 };
 
 export default useGame;

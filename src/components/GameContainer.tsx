@@ -1,28 +1,26 @@
-import { useState } from "react";
 import useGame from "../hooks/useGame";
 import Board from "./Board";
 
 const GameContainer = ({}) => {
-    const [gameStarted, setGameStarted] = useState(false);
-    const [score, cards, clickCard] = useGame();
+    const [score, cards, provideAnswer, playing, setGamePlaying] = useGame();
 
     const startGame = () => {
-        setGameStarted(true);
+        setGamePlaying(true);
     };
     const stopGame = () => {
-        setGameStarted(false);
+        setGamePlaying(false);
     };
 
     return (
         <div>
-            {gameStarted ? (
+            {playing ? (
                 <>
                     <div className="relative">
-                        <p className="score">Score: {''}, Time Left: {''}</p>
+                        <p className="score">Score: {score}, Time Left: {''}</p>
                     </div>
                     <Board
                         cards={cards}
-                        onCardClicked={() => console.log('clicked')}
+                        onCardClicked={provideAnswer}
                     />
                 </>
             ) : (
