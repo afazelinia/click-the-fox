@@ -45,10 +45,6 @@ const GameContainer = ({}) => {
         }
     }, [playing]);
 
-    const stopGame = () => {
-        setGamePlaying(false);
-    };
-
     const onSubmitForm = () => {
         const name = inputRef.current?.value ?? '';
         setPlayerName(name);
@@ -67,9 +63,9 @@ const GameContainer = ({}) => {
             {playing && (
                 <>
                     <div className="relative">
-                        <p className="score">Score: {score}, Time Left: 00:{timeLeft < 10 ? "0" + timeLeft : timeLeft}</p>
+                        <p className="score">Score: {score}, Time Left: 00:{timeLeft < 10 ? "0" + timeLeft : timeLeft}{isLoading && (' (Paused)')}</p>
                     </div>
-                    {(isLoading) ? <div className="paused-container">Loading...</div> : <Board
+                    {(isLoading) ? <div className="paused-container loading">Loading</div> : <Board
                         cards={cards}
                         onCardClicked={provideAnswer}
                     />}
@@ -80,7 +76,7 @@ const GameContainer = ({}) => {
                     {playerName.trim() === '' ? <form onSubmit={onSubmitForm}>
                         <label>Enter your name: <input type="text" name="playerName" ref={inputRef} /></label>
                     </form> : <p className="greeting" onClick={() => setPlayerName('')}>Hello {playerName}</p>}
-                    <button onClick={() => startGame()} disabled={isLoading}>{isLoading ? 'Loading...' : 'Play'}</button>
+                    <button onClick={() => startGame()} disabled={isLoading}>{isLoading? <span className="loading">Loading</span> : 'Play'}</button>
                 </div>
             )}
             {!playing && timeLeft <= 0 && (

@@ -63,7 +63,7 @@ const useGame = (): useGameType => {
     const [currentQuestion, setCurrentQuestion] = useState<answerType>({ answer: -1, cards: [] });
     const [collection, setCollection] = useState<collectionType>({ dogs: [], cats: [], foxes: []}); // loaded Images
 
-    const intervalId = useRef<number>();
+    const intervalId = useRef<number | null>();
 
     const { data: dogs, loading: loadingDogs } = useFetch(dogsAddress, reFetch.dogs);
     const { data: cats, loading: loadingCats } = useFetch(catsAddress, reFetch.cats);
@@ -74,14 +74,38 @@ const useGame = (): useGameType => {
             setScore(0);
             setTimeLeft(30);
             setCurrentQuestion(generateQuestion());
-            intervalId.current = window.setInterval(() => {
-                setTimeLeft(prevTimeLeft => prevTimeLeft - 1);
-            }, 1000);
+            setTimer();
             return () => {
-                clearInterval(intervalId.current);
+                removeTimer();
             }
         }
     }, [playing]);
+
+    useEffect(() => {
+        if (playing) {
+            const loading = isLoading(collection);
+            if (loading) {
+                removeTimer();
+            } else {
+                setTimer();
+            }
+        }
+    }, [collection]);
+
+    const setTimer = () => {
+        if (intervalId.current == null) {
+            intervalId.current = window.setInterval(() => {
+                setTimeLeft(prevTimeLeft => prevTimeLeft - 1);
+            }, 1000);
+        }
+    };
+
+    const removeTimer = () => {
+        if (intervalId.current != null) {
+            clearInterval(intervalId.current);
+            intervalId.current = null;
+        }
+    };
 
     useEffect(() => {
         if (timeLeft <= 0) {
@@ -161,7 +185,7 @@ const useGame = (): useGameType => {
         setPlaying(playing);
     };
 
-    const isLoading = (): boolean => {
+    const isLoading = (collection: collectionType): boolean => {
         return collection.dogs.length < dogsPerQuestion ||
             collection.cats.length < catsPerQuestion ||
             collection.foxes.length < 1;
@@ -173,7 +197,7 @@ const useGame = (): useGameType => {
             playing,
             setGamePlaying,
             timeLeft,
-            isLoading()];
+            isLoading(collection)];
 };
 
 export default useGame;
