@@ -14,18 +14,33 @@ const findRank = (currentRecord: scoreType, records: scoreType[]): number => {
 };
 
 const GameContainer = ({}) => {
-    const [score, cards, provideAnswer, playing, setGamePlaying, timeLeft, isLoading] = useGame();
+    const [score, cards, provideAnswer, playing, startGamePlaying, resetGamePlaying, timeLeft, isLoading] = useGame();
     const [playerName, setPlayerName] = useState('');
+    const [formHasError, setFormHasError] = useState(false);
     const [records, setRecords] = useLocalStorage("scoreboard_CtF", []);
 
     const inputRef = useRef<HTMLInputElement>(null);
 
     const startGame = () => {
+        if (!inputRef.current?.value.trim() && !playerName) {
+            setFormHasError(true);
+            return;
+        }
         if (!playerName) {
             setPlayerName(inputRef.current?.value ?? '');
         }
-        setGamePlaying(true);
+        setFormHasError(false);
+        startGamePlaying(false);
     };
+
+    const resetGame = () => {
+        setPlayerName('');
+        resetGamePlaying();
+    };
+
+    useEffect(() => {
+       inputRef.current?.focus();
+    },[]);
 
     useEffect(() => {
         if (!playing && timeLeft <= 0) {
@@ -71,15 +86,16 @@ const GameContainer = ({}) => {
                     />}
                 </>
             )}
-            {!playing && timeLeft > 0 && (
+            {(!playing && timeLeft > 0) && (
                 <div className="welcome-container">
                     {playerName.trim() === '' ? <form onSubmit={onSubmitForm}>
-                        <label>Enter your name: <input type="text" name="playerName" ref={inputRef} /></label>
+                        <label>Enter your name: <input type="text" name="playerName" onFocus={() => setFormHasError(false)} ref={inputRef} /></label>
+                        {(formHasError) && <div className="error-input">name is mandatory</div>}
                     </form> : <p className="greeting" onClick={() => setPlayerName('')}>Hello {playerName}</p>}
                     <button onClick={() => startGame()} disabled={isLoading}>{isLoading? <span className="loading">Loading</span> : 'Play'}</button>
                 </div>
             )}
-            {!playing && timeLeft <= 0 && (
+            {(!playing && timeLeft <= 0) && (
                 <>
                     <div className="relative">
                         <p className="score">Scoreboard</p>
@@ -87,6 +103,10 @@ const GameContainer = ({}) => {
                     <Scoreboard
                         records={fillRecords()}
                     />
+                    <div className="scoreboard-actions">
+                        <button onClick={() => startGamePlaying(true)}>{'Play Again'}</button>
+                        <button onClick={() => resetGame()}>{'To Welcome Screen'}</button>
+                    </div>
                 </>
             )}
         </div>

@@ -4,7 +4,7 @@ const App = () => {
   return (
       <div className="app">
         <header>
-          <h1>Click the Fox!</h1>
+          <h1>Click the Fox! Game</h1>
         </header>
         <main>
           <GameContainer />

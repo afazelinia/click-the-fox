@@ -7,7 +7,8 @@ type useGameType = [
     CardType[],
     (id: number) => void,
     boolean,
-    (playing: boolean) => void,
+    (playAgain: boolean) => void,
+    () => void,
     number,
     boolean,
 ];
@@ -73,7 +74,10 @@ const useGame = (): useGameType => {
         if (playing) {
             setScore(0);
             setTimeLeft(30);
-            setCurrentQuestion(generateQuestion());
+            if (currentQuestion.answer === -1) {
+                // question not prepared before
+                setCurrentQuestion(generateQuestion());
+            }
             setTimer();
             return () => {
                 removeTimer();
@@ -83,8 +87,7 @@ const useGame = (): useGameType => {
 
     useEffect(() => {
         if (playing) {
-            const loading = isLoading(collection);
-            if (loading) {
+            if (isLoading(collection)) {
                 removeTimer();
             } else {
                 setTimer();
@@ -110,6 +113,7 @@ const useGame = (): useGameType => {
     useEffect(() => {
         if (timeLeft <= 0) {
             setPlaying(false);
+            removeTimer();
         }
     }, [timeLeft]);
 
@@ -138,8 +142,7 @@ const useGame = (): useGameType => {
         }
     };
 
-    const generateQuestion = (): { answer: number, cards: CardType[] } => {
-        // prefetch pictures
+    const reFetchImages = () => {
         if (collection.dogs.length < dogsAddress.fetchCount) {
             setReFetch(prevReFetch => ({...prevReFetch, dogs: prevReFetch.dogs + 1 }));
         }
@@ -149,6 +152,11 @@ const useGame = (): useGameType => {
         if (collection.foxes.length < foxesAddress.fetchCount) {
             setReFetch(prevReFetch => ({...prevReFetch, foxes: prevReFetch.foxes + 1 }));
         }
+    };
+
+    const generateQuestion = (): { answer: number, cards: CardType[] } => {
+        // fetch new pictures
+        reFetchImages();
 
         // generate random question
         const answer = Math.floor(Math.random() * (catsPerQuestion + dogsPerQuestion + 1));
@@ -181,8 +189,20 @@ const useGame = (): useGameType => {
         }
     };
 
-    const setGamePlaying = (playing: boolean) => {
-        setPlaying(playing);
+    const startGamePlaying = (playAgain: boolean) => {
+        setPlaying(true);
+        if (playAgain) {
+            setCurrentQuestion(generateQuestion());
+            reFetchImages();
+        }
+    };
+
+    const resetGamePlaying = () => {
+        setPlaying(false);
+        setTimeLeft(30);
+        setScore(0);
+        setCurrentQuestion(generateQuestion());
+        reFetchImages();
     };
 
     const isLoading = (collection: collectionType): boolean => {
@@ -195,7 +215,8 @@ const useGame = (): useGameType => {
             currentQuestion.cards,
             provideAnswer,
             playing,
-            setGamePlaying,
+            startGamePlaying,
+            resetGamePlaying,
             timeLeft,
             isLoading(collection)];
 };
