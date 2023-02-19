@@ -1,0 +1,13 @@
+{
+  "files": {
+    "main.css": "/click-the-fox/static/css/main.da9d9eda.css",
+    "main.js": "/click-the-fox/static/js/main.9ecab34a.js",
+    "index.html": "/click-the-fox/index.html",
+    "main.da9d9eda.css.map": "/click-the-fox/static/css/main.da9d9eda.css.map",
+    "main.9ecab34a.js.map": "/click-the-fox/static/js/main.9ecab34a.js.map"
+  },
+  "entrypoints": [
+    "static/css/main.da9d9eda.css",
+    "static/js/main.9ecab34a.js"
+  ]
+}
