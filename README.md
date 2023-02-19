@@ -6,6 +6,8 @@ A game created with React.
 
 As the name suggests, it is a game in that selecting fox images have a positive point and others have a negative points. The images randomly change after every correct selection. The **goal** is to maximize your score by not selecting the other animals like cats and dogs in 30 seconds. The game shows the scoreboard finally.
 
+:point_right: **Play it [here](https://afazelinia.github.io/click-the-fox/)**
+
 ## Technologies Used
 
 - React
