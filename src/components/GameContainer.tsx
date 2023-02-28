@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback, useEffect } from "react";
+import { useState, useCallback, useEffect } from "react";
 import useGame from "../hooks/useGame";
 import useLocalStorage from "../hooks/useLocalStorage";
 import Board from "./Board";
@@ -11,30 +11,12 @@ import getDateTime from "../utils/getDateTime";
 const GameContainer = ({}) => {
     const [score, cards, provideAnswer, playing, startGamePlaying, resetGamePlaying, timeLeft, isLoading] = useGame();
     const [playerName, setPlayerName] = useState('');
-    const [formHasError, setFormHasError] = useState(false);
     const [records, setRecords] = useLocalStorage("scoreboard_CtF", []);
-    const inputRef = useRef<HTMLInputElement>(null);
-
-    const startGame = () => {
-        if (!inputRef.current?.value.trim() && !playerName) {
-            setFormHasError(true);
-            return;
-        }
-        if (!playerName) {
-            setPlayerName(inputRef.current?.value ?? '');
-        }
-        setFormHasError(false);
-        startGamePlaying(false);
-    };
 
     const resetGame = () => {
         setPlayerName('');
         resetGamePlaying();
     };
-
-    useEffect(() => {
-       inputRef.current?.focus();
-    },[]);
 
     useEffect(() => {
         if (!playing && timeLeft <= 0) {
@@ -45,11 +27,6 @@ const GameContainer = ({}) => {
             });
         }
     }, [playing]);
-
-    const onSubmitForm = () => {
-        const name = inputRef.current?.value ?? '';
-        setPlayerName(name);
-    };
 
     const fillRecords = useCallback(() => {
         let empty = [];
@@ -76,14 +53,11 @@ const GameContainer = ({}) => {
             {(!playing && timeLeft > 0) && (
                 <div className="welcome-container">
                     <Greeting
+                        loading={isLoading}
                         playerName={playerName}
+                        startGamePlaying={startGamePlaying}
                         setPlayerName={setPlayerName}
-                        onSubmitForm={onSubmitForm}
-                        setFormHasError={setFormHasError}
-                        formHasError={formHasError}
-                        inputRef={inputRef}
                     />
-                    <button onClick={() => startGame()} disabled={isLoading}>{isLoading? <span className="loading">Loading</span> : 'Play'}</button>
                 </div>
             )}
             {(!playing && timeLeft <= 0) && (
